@@ -1,7 +1,7 @@
 // Ember Validation
 // © 2013 Daniel Kuczewski
 // Licensed under MIT license
-// build date: 03-07-2013
+// build date: 05-07-2013
 (function(window) {
 if(typeof Ember === 'undefined') {
   throw new Error("Ember not found");
@@ -39,7 +39,7 @@ Ember.Validation.defaultMessages = {
 };
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
+var get = Ember.get, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
 /**
 Base class for rules.
 @class Ember.Validation.BaseRule
@@ -104,7 +104,7 @@ Ember.Validation.BaseRule = Ember.Object.extend({
 
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
+toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
 
 Ember.Validation.MatchRule = Ember.Validation.BaseRule.extend({
 
@@ -132,7 +132,7 @@ Ember.Validation.MailRule = Ember.Validation.MatchRule.extend({
 });
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
+toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
 
 Ember.Validation.NumberRule = Ember.Validation.BaseRule.extend({
 
@@ -203,7 +203,7 @@ Ember.Validation.NumberRangeRule = Ember.Validation.NumberRule.extend({
 });
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
+var get = Ember.get, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
 
 Ember.Validation.StringRule = Ember.Validation.BaseRule.extend({
 
@@ -264,7 +264,7 @@ Ember.Validation.TextLengthRule = Ember.Validation.BaseRule.extend({
 });
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
+var get = Ember.get, toType = Ember.Validation.toType, msgs = Ember.Validation.defaultMessages;
 
 Ember.Validation.RequiredRule = Ember.Validation.BaseRule.extend({
 
@@ -481,7 +481,7 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
 
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, toType = Ember.Validation.toType;
+var get = Ember.get, set = Ember.set;
 
 /**
  The ValueValidator stores a bunch of validators.
