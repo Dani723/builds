@@ -1,7 +1,7 @@
 // Ember Validation
 // © 2013 Daniel Kuczewski
 // Licensed under MIT license
-// build date: 05-07-2013
+// build date: 07-08-2013
 (function(window) {
 if(typeof Ember === 'undefined') {
   throw new Error("Ember not found");
@@ -467,14 +467,58 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
     });
   },
 
+  property: function(property) {
+    var results = get(this, 'results');
+    return results.get(property);
+  },
+
   /**
    @private
    */
   unknownProperty: function(property) {
-    return get(this, 'results').get(property) || Ember.Validation.Result.create();
+    return this.property(property) || this._findMatchingProperty(property);
+  },
+
+  // Searches for possible matching chained property and returns
+  // an helper object  for deeper investigation
+  _findMatchingProperty: function(root) {
+
+    var results = get(this, 'results');
+
+    var hasMatchingProperty = function(property){
+      var match = false;
+      results.forEach(function(p, result){
+        if(p.indexOf(property+'.')===0) {
+          match = true;
+        }
+      });
+      return match;
+    };
+
+    if(hasMatchingProperty(root)) {
+      return Ember.Object.create({
+        parentProperty:root,
+
+        unknownProperty: function(property) {
+
+          property = get(this, 'parentProperty') + '.' + property;
+
+          if(results.has(property)) {
+            return results.get(property);
+          } else {
+            if(hasMatchingProperty(property)) {
+              set(this, 'parentProperty', property);
+              return this;
+            } else {
+              return undefined;
+            }
+          }
+        }
+      });
+    } else {
+      return undefined;
+    }
   }
-
-
 });
 
 
@@ -765,7 +809,7 @@ Ember.Validation.ChainingContext = Ember.Object.extend({
   },
 
   /**
-  beginns the chaining of a property validator
+  begins the chaining of a property validator
    @method property
    @return {Ember.Validation.Chain}
    */
@@ -931,10 +975,10 @@ Ember.Validation.ValidatorSupport = Ember.Mixin.create(Ember.Evented, {
     // gets the objectvalidator for this class
     var validator = get(this, 'validator');
     if(!validator) {
-      throw new Error("Add validation property when using the ValidatorSupport mixin");
+      Ember.Logger.warn("Add validator property when using the ValidatorSupport mixin");
     } else {
       if(!Ember.Validation.ObjectValidator.detect(validator.constructor)){
-        throw new Error("validation property must be a subclass of ObjectValidator");
+        Ember.Logger.warn("The validator property must be a subclass of ObjectValidator");
       }
     }
 
