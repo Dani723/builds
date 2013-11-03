@@ -1,7 +1,7 @@
 // Ember Validation
 // © 2013 Daniel Kuczewski
 // Licensed under MIT license
-// build date: 22-09-2013
+// build date: 03-11-2013
 (function(window) {
 if(typeof Ember === 'undefined') {
   throw new Error("Ember not found");
@@ -19,6 +19,14 @@ if ('undefined' === typeof EV) {
 
 Ember.Validation.toType = function(obj) {
   return ({}).toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase();
+};
+
+Ember.Validation.humanize = function (str) {
+  return str.replace(/_id$/, '').
+    replace(/_/g, ' ').
+    replace(/^\w/g, function (s) {
+      return s.toUpperCase();
+    });
 };
 })(this);
 (function(window) {
@@ -365,10 +373,10 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
   clear: function() {
     var results = get(this, 'results');
     results.forEach(function(property, result ) {
-      if(Ember.Validation.ValidationResult.detect(result)){
+      if(Ember.Validation.ValidationResult.detectInstance(result)){
         result.clear();
-      } else if(Ember.Validation.Result.detect(result)){
-        results.set(property, Ember.Validation.Result.create());
+      } else if(Ember.Validation.Result.detectInstance(result)){
+        result.set('error', null);
       }
     });
     this.notifyPropertyChange('results');
@@ -483,12 +491,7 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
   unknownProperty: function(property) {
     return get(this, 'results').get(property) || Ember.Validation.Result.create();
   }
-
-
 });
-
-
-
 })(this);
 (function(window) {
 var get = Ember.get, set = Ember.set;
@@ -571,6 +574,21 @@ Ember.Validation.ObjectValidator = Ember.Object.extend({
     return get(this, 'validators').has(property);
   },
 
+  createResult: function() {
+    var retVal = Ember.Validation.ValidationResult.create();
+
+    var properties = [];
+    get(this, 'validators').forEach(function(property){
+      properties.push(property);
+    });
+
+    for (var i=0;i<get(properties, 'length');i++) {
+      retVal.setPropertyResult(properties[i], Ember.Validation.Result.create());
+    }
+
+    return retVal;
+  },
+
   /**
    validates the object with the validators
    option can be
@@ -587,7 +605,7 @@ Ember.Validation.ObjectValidator = Ember.Object.extend({
   validate: function(obj, option) {
 
     var result;
-    var retVal = Ember.Validation.ValidationResult.create();
+    var retVal = this.createResult();
 
     var validateAll = true;
 
@@ -647,7 +665,7 @@ Ember.Validation.ObjectValidator = Ember.Object.extend({
 });
 })(this);
 (function(window) {
-var get = Ember.get, set = Ember.set, toType = Ember.Validation.toType;
+var get = Ember.get, set = Ember.set, toType = Ember.Validation.toType, humanize = Ember.Validation.humanize;
 
 /**
  The Chaining object helps to create a ValueValidator in a single statement
@@ -784,7 +802,7 @@ Ember.Validation.ChainingContext = Ember.Object.extend({
    */
   property: function(property, propertyName) {
     var chain = Ember.Validation.Chaining.create({
-      propertyName: propertyName || (property.charAt(0).toUpperCase() + property.slice(1))
+      propertyName: propertyName || humanize(property)
     });
     get(this, 'items')[property] = chain;
     return chain;
@@ -815,12 +833,12 @@ Ember.Validation.ChainingContext = Ember.Object.extend({
       if(items.hasOwnProperty(property)) {
         var item = items[property];
         // when its still a chain, create the ValueValidator
-        if(Ember.Validation.Chaining.detect(item.constructor)) {
+        if(Ember.Validation.Chaining.detectInstance(item)) {
           item = item.createValueValidator();
         }
 
-        if(Ember.Validation.ValueValidator.detect(item.constructor) ||
-          Ember.Validation.ObjectValidator.detect(item.constructor)){
+        if(Ember.Validation.ValueValidator.detectInstance(item) ||
+          Ember.Validation.ObjectValidator.detectInstance(item)){
           oValidator.setPropertyValidator(property, item);
         }
       }
@@ -961,7 +979,7 @@ Ember.Validation.ValidatorSupport = Ember.Mixin.create(Ember.Evented, {
       }
     }
 
-    this.set('validationResult', Ember.Validation.ValidationResult.create());
+    this.set('validationResult', validator.createResult());
   },
 
   /**
