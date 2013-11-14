@@ -1,7 +1,7 @@
 // Ember Validation
 // © 2013 Daniel Kuczewski
 // Licensed under MIT license
-// build date: 03-11-2013
+// build date: 14-11-2013
 (function(window) {
 if(typeof Ember === 'undefined') {
   throw new Error("Ember not found");
@@ -67,11 +67,11 @@ Ember.Validation.BaseRule = Ember.Object.extend({
     };
 
     var parameters = this.getParameters(context);
-    result.isValid = this.validate.apply(this, [value].concat(parameters));
+    result.isValid = this.validate.apply(this, [value].concat(parameters, [context]));
     if(!result.isValid) {
       result.error = this.getError(parameters);
     }
-    result.override = this.override.apply(this, [value, result.isValid].concat(parameters));
+    result.override = this.override.apply(this, [value, result.isValid].concat(parameters, [context]));
 
     return result;
   },
@@ -382,6 +382,10 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
     this.notifyPropertyChange('results');
   },
 
+  getPropertyResult: function(property) {
+    return get(this, 'results').get(property) || Ember.Validation.Result.create();
+  },
+
   setPropertyResult: function(property, presult) {
     var results = get(this, 'results');
     results.set(property, presult);
@@ -489,7 +493,7 @@ Ember.Validation.ValidationResult = Ember.Object.extend({
    @private
    */
   unknownProperty: function(property) {
-    return get(this, 'results').get(property) || Ember.Validation.Result.create();
+    return this.getPropertyResult(property);
   }
 });
 })(this);
@@ -1206,21 +1210,6 @@ Ember.Validation.ValidatorViewSupport = Ember.Mixin.create({
     return null;
   },
 
-  /**
-   validates related property on the validation object without setting the result
-   *
-   * @method prevalidate
-   * @return {Ember.Validation.Result} returns the validation result
-   */
-  prevalidate: function() {
-    // just pass it to the ValidatorSupport object
-    var validationObject = get(this, 'validationObject');
-    var validationProperty = get(this, 'validationProperty');
-    if(validationObject) {
-      return validationObject.validateProperty(validationProperty);
-    }
-  },
-
   didInsertElement: function() {
     this._super();
 
@@ -1253,7 +1242,5 @@ Ember.Validation.ValidatorViewSupport = Ember.Mixin.create({
     set(this, 'validationResult', result);
     this.didValidate(result);
   }
-
-
 });
 })(this);
