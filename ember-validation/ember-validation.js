@@ -1,7 +1,7 @@
 // Ember Validation
 // © 2013 Daniel Kuczewski
 // Licensed under MIT license
-// build date: 14-11-2013
+// build date: 24-02-2014
 (function(window) {
 if(typeof Ember === 'undefined') {
   throw new Error("Ember not found");
@@ -277,16 +277,18 @@ var get = Ember.get, toType = Ember.Validation.toType, msgs = Ember.Validation.d
 Ember.Validation.RequiredRule = Ember.Validation.BaseRule.extend({
 
   message: msgs.required,
-  override: false,
+
+  isEmpty: function(value) {
+    return value === null || value === '';
+  },
 
   validate: function(value, required) {
-    return !value ? !required : true;
+    return this.isEmpty(value) ? !required : true;
   },
 
   override: function(value, isValid, required) {
-    return !value && !required;
+    return this.isEmpty(value) && !required;
   }
-
 });
 
 Ember.Validation.EqualsRule = Ember.Validation.BaseRule.extend({
@@ -1184,6 +1186,9 @@ Ember.Validation.ValidatorViewSupport = Ember.Mixin.create({
     if(validationObject && toType(validationObject.validate)==='function' && validationProperty) {
       set(this, 'validationProperty', validationProperty);
       set(this, 'validationObject', validationObject);
+    } else if(Ember.ObjectController.detectInstance(validationObject) && toType(validationObject.get('model.validate'))==='function' && validationProperty) {
+      set(this, 'validationProperty', validationProperty);
+      set(this, 'validationObject', validationObject.get('model'));
     } else {
       set(this, 'validationProperty', null);
       set(this, 'validationObject', null);
